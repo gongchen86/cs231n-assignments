@@ -73,7 +73,7 @@ class KNearestNeighbor(object):
         # training point, and store the result in dists[i, j]. You should   #
         # not use a loop over dimension.                                    #
         #####################################################################
-        pass
+        dists[i,j]=np.sqrt(np.sum(np.square(X[i,:]-self.X_train[j,:])))
         #####################################################################
         #                       END OF YOUR CODE                            #
         #####################################################################
@@ -95,7 +95,7 @@ class KNearestNeighbor(object):
       # Compute the l2 distance between the ith test point and all training #
       # points, and store the result in dists[i, :].                        #
       #######################################################################
-      pass
+      dists[i,:]=np.sqrt(np.sum(np.square(X[i,:]-self.X_train),axis=1))
       #######################################################################
       #                         END OF YOUR CODE                            #
       #######################################################################
@@ -123,7 +123,16 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    
+    #X3=np.reshape(X,(X.shape[0],1,X.shape[1]))
+    #X_train3=np.reshape(self.X_train,(1,self.X_train.shape[0],X.shape[1]))
+    #dists=np.sqrt(np.sum(np.square(X3-X_train3),axis=2))
+    
+    test_square = np.reshape(np.sum(X*X, axis = 1),(-1,1))
+    train_square = np.reshape(np.sum(self.X_train*self.X_train, axis = 1),(1,-1))
+
+    dists = test_square + train_square - 2*np.dot(X,np.transpose(self.X_train))
+    dists = np.sqrt(dists)
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -155,7 +164,10 @@ class KNearestNeighbor(object):
       # neighbors. Store these labels in closest_y.                           #
       # Hint: Look up the function numpy.argsort.                             #
       #########################################################################
-      pass
+      sorted_dists = np.argsort(dists[i,:])
+      closest_y = sorted_dists[0:k]
+      closest_labels = list(self.y_train[closest_y])
+      
       #########################################################################
       # TODO:                                                                 #
       # Now that you have found the labels of the k nearest neighbors, you    #
@@ -163,7 +175,17 @@ class KNearestNeighbor(object):
       # Store this label in y_pred[i]. Break ties by choosing the smaller     #
       # label.                                                                #
       #########################################################################
-      pass
+      
+      most_common_label = max(set(closest_labels), key=closest_labels.count) #find most common label
+
+      # Handle Tie (find if there're other lables with equal occruences as the most common label)
+      
+      for label in set(closest_labels):
+        if closest_labels.count(label) == closest_labels.count(most_common_label):
+          if label < most_common_label:
+            most_common_label = label
+
+      y_pred[i] = most_common_label
       #########################################################################
       #                           END OF YOUR CODE                            # 
       #########################################################################
